@@ -1,0 +1,12 @@
+{
+    "buildCommand": "pnpm run build:web && node deploy/write-settings.mjs",
+    "framework": null,
+    "headers": [
+        {
+            "headers": [{ "key": "Cache-Control", "value": "no-store" }],
+            "source": "/settings.js"
+        }
+    ],
+    "installCommand": "pnpm install",
+    "outputDirectory": "out/web"
+}
