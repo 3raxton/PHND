@@ -142,7 +142,7 @@ export const WindowBar = () => {
     const privateMode = useAppStore((state) => state.privateMode);
     const handleMinimize = () => minimize();
 
-    const { currentSong, index, queueLength } = usePlayerData();
+    const { currentSong, queueLength } = usePlayerData();
     const { isPlaying: isRadioPlaying, metadata, stationName } = useRadioPlayer();
     const isRadioActive = Boolean(stationName || metadata);
     const [max, setMax] = useState(localSettings?.env.START_MAXIMIZED || false);
@@ -160,44 +160,39 @@ export const WindowBar = () => {
 
     const title = useMemo(() => {
         const privateModeString = privateMode ? t('page.windowBar.privateMode') : '';
+        const appName = window.SERVER_NAME || 'Feishin';
 
         if (!windowBarTrackinfo) {
-            return `Feishin${privateMode ? ` ${privateModeString}` : ''}`;
+            return `${appName}${privateMode ? ` ${privateModeString}` : ''}`;
         }
 
-        // Show radio information if radio is active
+        let pausedMark = '';
         if (isRadioActive) {
-            const radioStatusString = !isRadioPlaying ? t('page.windowBar.paused') : '';
-            const radioTitle = stationName;
-
-            // Format metadata: show title, or combine artist and title if both available
-            let radioMetadata = '';
-            if (metadata) {
-                if (metadata.title && metadata.artist) {
-                    radioMetadata = ` — ${metadata.artist} — ${metadata.title}`;
-                } else if (metadata.title) {
-                    radioMetadata = ` — ${metadata.title}`;
-                } else if (metadata.artist) {
-                    radioMetadata = ` — ${metadata.artist}`;
-                }
-            }
-
-            return `${radioStatusString}${radioTitle}${radioMetadata} — Feishin${privateMode ? ` ${privateModeString}` : ''}`;
+            if (!isRadioPlaying) pausedMark = '⏸ ';
+        } else if (playerStatus === PlayerStatus.PAUSED) {
+            pausedMark = '⏸ ';
         }
 
-        // Show regular song information
-        const statusString = playerStatus === PlayerStatus.PAUSED ? t('page.windowBar.paused') : '';
-        const queueString = queueLength ? `(${index + 1} / ${queueLength}) ` : '';
-        const title = `${
-            queueLength
-                ? `${statusString}${queueString}${currentSong?.name}${currentSong?.artistName ? ` — ${currentSong?.artistName} — Feishin` : ''}`
-                : 'Feishin'
-        }${privateMode ? ` ${privateModeString}` : ''}`;
-        return title;
+        if (isRadioActive) {
+            const radioTitle = [stationName, metadata?.artist, metadata?.title, appName]
+                .filter((part) => part)
+                .join(' • ');
+
+            return `${pausedMark}${radioTitle}${privateMode ? ` ${privateModeString}` : ''}`;
+        }
+
+        if (!queueLength) {
+            return `${appName}${privateMode ? ` ${privateModeString}` : ''}`;
+        }
+
+        const trackTitle = [currentSong?.name, currentSong?.artistName, appName]
+            .filter((part) => part)
+            .join(' • ');
+
+        return `${pausedMark}${trackTitle}${privateMode ? ` ${privateModeString}` : ''}`;
     }, [
         currentSong?.artistName,
         currentSong?.name,
-        index,
         isRadioActive,
         isRadioPlaying,
         metadata,
@@ -210,7 +205,23 @@ export const WindowBar = () => {
     ]);
 
     useEffect(() => {
-        document.title = title;
+        // Tabs clip long titles. Shift the string so the full name cycles through.
+        if (title.length <= 40) {
+            document.title = title;
+            return;
+        }
+
+        const loop = `${title}   `;
+        const width = 40;
+        let offset = 0;
+        document.title = title.slice(0, width);
+
+        const timer = window.setInterval(() => {
+            offset = (offset + 1) % loop.length;
+            document.title = (loop + loop).slice(offset, offset + width);
+        }, 250);
+
+        return () => window.clearInterval(timer);
     }, [title]);
 
     if (windowBarStyle === Platform.WEB) {

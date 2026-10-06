@@ -39,7 +39,7 @@ export const MobileLayout = ({ shell }: MobileLayoutProps) => {
                 })}
                 id="mobile-layout"
             >
-                {!shell && <WindowBar />}
+                {(!shell || windowBarStyle === Platform.WEB) && <WindowBar />}
                 {!shell && (
                     <ActionIcon
                         className={styles.drawerButton}
