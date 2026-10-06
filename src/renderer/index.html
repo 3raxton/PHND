@@ -7,6 +7,9 @@
         <% if (web) { %>
         <link rel="icon" href="./assets/favicon.ico" />
         <script src="settings.js"></script>
+        <script>
+            if (window.SERVER_NAME) document.title = window.SERVER_NAME;
+        </script>
         <% } %>
         <script>
             (function () {

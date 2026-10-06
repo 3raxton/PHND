@@ -210,8 +210,10 @@ export const WindowBar = () => {
     ]);
 
     useEffect(() => {
-        document.title = title;
-    }, [title]);
+        const playing = playerStatus === PlayerStatus.PLAYING || (isRadioActive && isRadioPlaying);
+        const serverName = window.SERVER_NAME;
+        document.title = !playing && serverName ? serverName : title;
+    }, [isRadioActive, isRadioPlaying, playerStatus, title]);
 
     if (windowBarStyle === Platform.WEB) {
         return null;
