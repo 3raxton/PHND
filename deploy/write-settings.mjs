@@ -29,3 +29,24 @@ const settings = template.replaceAll(/\$\{([A-Za-z0-9_]+)\}/g, (match, name) => 
 });
 
 writeFileSync(join(root, 'out/web/settings.js'), settings);
+
+// Link previews read the static HTML. They do not run the tab-title script.
+const serverName = process.env.SERVER_NAME;
+if (serverName) {
+    const indexPath = join(root, 'out/web/index.html');
+    const safe = serverName
+        .replaceAll('&', '&amp;')
+        .replaceAll('"', '&quot;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;');
+    const meta = [
+        `<meta property="og:title" content="${safe}" />`,
+        `<meta property="og:site_name" content="${safe}" />`,
+        `<meta name="twitter:title" content="${safe}" />`,
+        `<meta name="apple-mobile-web-app-title" content="${safe}" />`,
+    ].join('\n        ');
+    const html = readFileSync(indexPath, 'utf8')
+        .replace(/<title>[\s\S]*?<\/title>/, `<title>${safe}</title>`)
+        .replace('</head>', `        ${meta}\n    </head>`);
+    writeFileSync(indexPath, html);
+}

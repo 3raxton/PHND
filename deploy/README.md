@@ -17,6 +17,8 @@ In the Vercel project, set these for Production (and Preview, if preview deploys
 
 The build fails if any of those four are missing.
 
+`SERVER_NAME` is also written into the page title and the Open Graph tags in `index.html`. iMessage and similar apps read those tags. They do not run the script that updates the browser tab. They also cache the preview, so a link that was already shared can keep the old name until that cache expires.
+
 Optional, same names as the Docker image:
 
 | Name | Value |
